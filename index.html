@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
+</head>
+
+<body>
+    <div>
+        <br>
+        <div>
+            <h1>Send Message</h1>
+            <br>
+            <input id='name' placeholder='Name'>
+            <br>
+            <textarea id='message' placeholder='Your Message Here'>
+</textarea>
+            <br>
+            <button id='send'>Send</button>
+        </div>
+        <ul id='messages' style="list-style-type:none;">
+
+        </ul>
+    </div>
+
+    <script>
+        // not specifying any URL when I call io(), since it defaults to trying to connect to the host that serves the page.
+        var socket = io();
+        (() => {
+
+            document.getElementById("send").addEventListener("click", () => {
+                sendMessage({
+                    name: document.getElementById("name").value,
+                    message: document.getElementById("message").value
+                });
+            })
+            getMessages()
+        })()
+
+        
+
+        socket.on('message', addMessages);
+
+        function addMessages(message) {
+            const messagesDiv = document.getElementById("messages")
+            const messageFrgament = document.createDocumentFragment();
+            const listItem = document.createElement("li");
+            const nameNode = Object.assign(document.createElement("h4"), {textContent: message.name})
+            const messageNode = Object.assign(document.createElement("p"), {textContent: message.message})
+
+            messageFrgament.appendChild(listItem);
+            listItem.appendChild(nameNode);
+            listItem.appendChild(messageNode);
+            messagesDiv.appendChild(messageFrgament);
+        }
+
+        function getMessages() {
+            var xmlhttp = new XMLHttpRequest();
+
+            xmlhttp.open("GET", 'http://localhost:3000/messages', true);
+            xmlhttp.send();
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                    if (xmlhttp.status == 200) {
+                        JSON.parse(xmlhttp.responseText).forEach(addMessages);
+                    }
+                    else if (xmlhttp.status == 400) {
+                        alert('There was an error 400');
+                    }
+                    else {
+                        alert('something else other than 200 was returned');
+                    }
+                }
+            };
+        }
+
+        function sendMessage(message) {
+            var xmlhttp = new XMLHttpRequest();
+
+            xmlhttp.open("POST", 'http://localhost:3000/messages', true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+            xmlhttp.send(JSON.stringify(message));
+        }
+
+    </script>
+</body>
+
+</html>
