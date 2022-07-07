@@ -1,27 +1,71 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
+const WebSocket = require('ws');
 
 var dbUrl = '';
+
+const PORT = process.env.PORT || 3000;
+
+const Redis = require('ioredis');
+const redisClient = new Redis();
 
 var app = express();
 var http = require('http');
 //  express initializes app to be a function handler that you can supply to an HTTP server 
 var server = http.createServer(app);
-const { Server } = require('socket.io');
-// initialize a new instance of socket.io by passing the server (the HTTP server) object
-var io =  new Server(server);
 
-io.on('connection', (socket) =>{
-  console.log('a user is connected')
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
+const webSocketServer = new WebSocket.WebSocketServer({server});
+
+const getCachedMessages = socket => {
+  redisClient.lrange("messages", 0, -1, (error, data) => {
+    data.map(message => {
+      socket.send(message)
+    })
+  })
+}
+
+
+webSocketServer.on('connection', function connection(ws) {
+  
+  getCachedMessages(ws);
+
+  ws.on('message', async function incoming(data, isBinary= true) {
+    console.log(data)
+    const message = isBinary ? data : data.toString();
+    // user:message
+    try {
+      const result = await redisClient.rpush("messages", [`${message}`]);
+      console.log(result);
+      } catch (error) {
+          console.error(error);
+      }
+    webSocketServer.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(message), { binary: isBinary };
+      }
+    })
+  })
 })
+
+// webSocketServer.on('connection', (webSocket) =>{
+//   console.log('a user is connected')
+//   webSocket.on('message', (data) => {
+//     debugger
+//     console.log('message received')
+//     for ( client of webSocketServer.clients ) {
+//       client.readyState === WebSocket.OPEN &&
+//         client.send(data)
+//     }
+//    });
+//   webSocket.on('disconnect', () => {
+//     console.log('user disconnected');
+//   });
+// })
 
 app.use(express.static(__dirname));
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
 mongoose.connect(dbUrl, (err) => {
   console.log('mongodb connected', err);
@@ -36,25 +80,23 @@ app.get('/messages', (req, res) => {
 })
 
 app.post('/messages', (req, res) => {
-  console.log('request', req);
-  console.log('request body', req.body);
   var message = new Message(req.body);
 
-  console.log('server message', message);
   message.save((err) => {
     if (err) {
       res.sendStatus(500);
     }
-    io.emit('message', req.body);
+    webSocketServer.emit('message', req.body);
     res.sendStatus(200);
   })
 })
 
-server.listen(3000, () => {
-  console.log('server is running on port 3000');
+server.listen(PORT, () => {
+  console.log(`server is running on port ${PORT}`);
   console.log(__dirname);
 });
 
 // app.get('/', (req, res) => {
 //     res.send('Hello World!')
 //   })
+ 
