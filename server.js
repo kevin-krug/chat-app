@@ -1,75 +1,67 @@
-var express = require('express');
-var mongoose = require('mongoose');
-var bodyParser = require('body-parser');
+const express = require('express');
+const mongoose = require('mongoose');
 const WebSocket = require('ws');
+const dotenv = require('dotenv');
 
-var dbUrl = '';
+dotenv.config();
 
 const PORT = process.env.PORT || 3000;
+const dbUrl = process.env.MONGO_URI;
 
 const Redis = require('ioredis');
 const redisClient = new Redis();
 
-var app = express();
-var http = require('http');
-//  express initializes app to be a function handler that you can supply to an HTTP server 
-var server = http.createServer(app);
+const app = express(); // init express app function handler
+const http = require('http');
+const server = http.createServer(app); // supply app to HTTP server 
+
 
 const webSocketServer = new WebSocket.WebSocketServer({server});
 
 const getCachedMessages = socket => {
   redisClient.lrange("messages", 0, -1, (error, data) => {
+
     data.map(message => {
       socket.send(message)
     })
   })
 }
 
-
 webSocketServer.on('connection', function connection(ws) {
   
+  console.log('a user joined');
+
   getCachedMessages(ws);
 
   ws.on('message', async function incoming(data, isBinary= true) {
-    console.log(data)
-    const message = isBinary ? data : data.toString();
-    // user:message
+
+    const payload = isBinary ? data : data.toString();
+
     try {
-      const result = await redisClient.rpush("messages", [`${message}`]);
-      console.log(result);
-      } catch (error) {
-          console.error(error);
-      }
+      await redisClient.rpush("messages", [payload]); // store in redis as strinigified json
+    } catch (error) {
+      console.error(error);
+    }
+
     webSocketServer.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(message), { binary: isBinary };
+        client.send(payload), { binary: isBinary };
       }
     })
+
   })
+
+  ws.on('disconnect', () => {
+    console.log('a user left');
+  });
+
 })
 
-// webSocketServer.on('connection', (webSocket) =>{
-//   console.log('a user is connected')
-//   webSocket.on('message', (data) => {
-//     debugger
-//     console.log('message received')
-//     for ( client of webSocketServer.clients ) {
-//       client.readyState === WebSocket.OPEN &&
-//         client.send(data)
-//     }
-//    });
-//   webSocket.on('disconnect', () => {
-//     console.log('user disconnected');
-//   });
-// })
-
-app.use(express.static(__dirname));
-
-// app.use(bodyParser.json());
+app.use(express.static(__dirname + '/'));
 
 mongoose.connect(dbUrl, (err) => {
   console.log('mongodb connected', err);
-})
+}).catch(error => console.error(error));
 
 var Message = mongoose.model('Message', { name: String, message: String });
 
@@ -96,7 +88,4 @@ server.listen(PORT, () => {
   console.log(__dirname);
 });
 
-// app.get('/', (req, res) => {
-//     res.send('Hello World!')
-//   })
  

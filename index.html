@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
 </head>
 
@@ -9,18 +10,14 @@
     <div>
         <br>
         <div>
-            <h1>Send Message</h1>
-            <br>
-            <input id='name' placeholder='Name'>
-            <br>
-            <textarea id='message' placeholder='Your Message Here'>
-</textarea>
-            <br>
-            <button id='send'>Send</button>
+            <h1>Join the Chat</h1>
+            <form action="/chat">
+                <input id="user" type="text" name="user" placeholder='Your Name'>
+                <br>
+                <br>
+                <button id="join" type="submit">Join</button>
+                </form>
         </div>
-        <ul id='messages' style="list-style-type:none;">
-
-        </ul>
     </div>
     <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
     <script src="index.js"></script>
