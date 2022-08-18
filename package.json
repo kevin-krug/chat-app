@@ -9,13 +9,13 @@
   "author": "kevin krug",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.0.1",
     "express": "^4.17.1",
     "http": "0.0.1-security",
     "ioredis": "^4.28.1",
     "mongoose": "^6.0.10",
-    "nodemon": "^2.0.12",
+    "nodemon": "^2.0.19",
     "redis": "^4.0.0",
-    "socket.io": "^4.3.0",
     "ws": "^8.3.0"
   }
 }
