@@ -19,6 +19,7 @@ const server = http.createServer(app); // supply app to HTTP server
 const webSocketServer = new WebSocket.WebSocketServer({server});
 
 const getCachedMessages = socket => {
+  // get all cached messages from start 0 to end -1
   redisClient.lrange("messages", 0, -1, (error, data) => {
 
     data.map(message => {
@@ -38,11 +39,14 @@ webSocketServer.on('connection', function connection(ws) {
     const payload = isBinary ? data : data.toString();
 
     try {
+      // store strinigified message obj in redis cache
+      // messages: ["{\"user\":\"...\",\"message\":\"...\"}""]
       await redisClient.rpush("messages", [payload]); // store in redis as strinigified json
     } catch (error) {
       console.error(error);
     }
 
+    // emit message event to all other socket clients
     webSocketServer.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(payload), { binary: isBinary };
@@ -85,7 +89,5 @@ app.post('/messages', (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
-  console.log(__dirname);
 });
-
  
