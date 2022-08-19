@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "npx nodemon --inspect ./server.js"
+    "debug": "npx nodemon --inspect ./server.js",
+    "start:redis": "redis-server"
   },
   "author": "kevin krug",
   "license": "ISC",
