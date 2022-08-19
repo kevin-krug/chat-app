@@ -3,21 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="./styles/global.css">
     <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
 </head>
 
 <body>
-    <div>
-        <br>
-        <div>
-            <h1>Join the Chat</h1>
-            <form action="/chat">
-                <input id="user" type="text" name="user" placeholder='Your Name'>
-                <br>
-                <br>
-                <button id="join" type="submit">Join</button>
-                </form>
-        </div>
+    <div class="w3-container w3-center w3-margin-top">
+        <h1 class="w3-margin-bottom">Join the Chat</h1>
+        <form action="/chat">
+            <input class="w3-input w3-border w3-round-large w3-margin-bottom" id="user" type="text" name="user"
+                placeholder="Your Name">
+            <button class="w3-button w3-border w3-round-large w3-deep-purple w3-hover-purple w3-block" id="join"
+                type="submit">Join</button>
+        </form>
     </div>
     <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
     <script src="index.js"></script>

@@ -1,0 +1,28 @@
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: Helvetica Neue, Helvetica, Segoe UI, Tahoma, Arial, sans-serif;
+}
+
+button,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+}
+
+form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+input {
+    font-weight: 500;
+}
